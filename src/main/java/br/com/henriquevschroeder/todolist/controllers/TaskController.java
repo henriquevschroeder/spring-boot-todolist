@@ -1,7 +1,7 @@
 package br.com.henriquevschroeder.todolist.controllers;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,16 @@ public class TaskController {
         var userId = request.getAttribute("userId");
 
         taskModel.setUserId((UUID) userId);
+
+        var currentDate = LocalDateTime.now();
+
+        if (currentDate.isAfter(taskModel.getStartAt()) || currentDate.isAfter(taskModel.getFinishAt())) {
+            return ResponseEntity.badRequest().body("Start or finish date must be greater than current date");
+        }
+
+        if (taskModel.getStartAt().isAfter(taskModel.getFinishAt())) {
+            return ResponseEntity.badRequest().body("Start date must be before finish date");
+        }
 
         TaskModel createdTask = this.taskRepository.save(taskModel);
 
