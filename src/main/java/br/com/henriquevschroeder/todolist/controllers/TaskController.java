@@ -26,7 +26,7 @@ public class TaskController {
     private ITaskRepository taskRepository;
 
     @GetMapping
-    public List<TaskModel> list(HttpServletRequest request)
+    public List<TaskModel> getAll(HttpServletRequest request)
     {
         var userId = request.getAttribute("userId");
 
@@ -35,6 +35,26 @@ public class TaskController {
         return tasks;
     }
     
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> get(@PathVariable UUID id, HttpServletRequest request)
+    {
+        var task = this.taskRepository.findById(id).orElse(null);
+        
+        if (task == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task not found");
+        }
+        
+        var userId = request.getAttribute("userId");
+        
+        if (!task.getUserId().equals(userId)) {
+            return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body("You can't get a task that is not yours");
+        }
+        
+        return ResponseEntity.ok().body(task);
+    }
+
     @PostMapping
     public ResponseEntity<Object> create(@RequestBody TaskModel taskModel, HttpServletRequest request)
     {
@@ -82,4 +102,5 @@ public class TaskController {
         
         return ResponseEntity.ok().body(updatedTask);
     }
+
 }
